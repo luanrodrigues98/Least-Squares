@@ -1,0 +1,19 @@
+#Polynomial degree:
+1
+
+#Information for the chart:
+#Title:
+Title
+
+#X-axis:
+X-axis
+
+#Y-axis:
+Y-axis
+
+#X and Y coordinates, respectively:
+0,0
+0.5,0.599
+1,1.2
+1.5,1.8
+2,2.4
