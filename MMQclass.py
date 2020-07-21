@@ -2,153 +2,171 @@ import numpy as np
 import math
 class MMQ(object):
 
-    def __init__(self, arquivo):
-        #O Construtor que recebe o arquivo passado para ele e retirar suas informações.
-        with open(arquivo) as file:
-            dados = file.readlines()
+    def __init__(self, data_file):
+        
+        #The constructor receives the file passed to him and remove his information
+        with open(data_file) as file:
+            data = file.readlines()
 
         list = []
-        for linha in dados:
-            if not linha.startswith('#') and not linha.startswith('\n'):
-                list.append(linha.strip())
+        for row in data:
+            if not row.startswith('#') and not row.startswith('\n'):
+                list.append(row.strip())
 
-        self.grau_polinomio, self.titulo, self.nome_x, self.nome_y, *coords = list
-        self.grau_polinomio= int(self.grau_polinomio) + 1
+        self.polynomial_degree, self.title, self.name_x, self.name_y, *coords = list
+        self.polynomial_degree= int(self.polynomial_degree) + 1
 
-        self.pontos_x = []
-        self.pontos_y = []
+        self.coord_x = []
+        self.coord_y = []
         for coord in coords:
             x, y = coord.split(',')
             x,y = float(x), float(y)
-            self.pontos_x.append(x)
-            self.pontos_y.append(y)
+            self.coord_x.append(x)
+            self.coord_y.append(y)
         self.LeastSquare()
 
     def LeastSquare(self):
 
-        self.matrix_somatorios_x = []
-        #For para percorrer as linhas:
-        for i in range(self.grau_polinomio):
-            #Cria uma linha vazia
-            linha = []
-            #For para percorrer as colunas
-            for j in range(self.grau_polinomio):
-                #Faz os somatorios e coloca-los em suas respectivas colunas
-                linha.append(np.sum(np.power(self.pontos_x, (j + i) )))
-            #Adiciona uma linha a matriz de somatorios.
-            self.matrix_somatorios_x.append(linha)
+        self.matrix_summation_x = []
+        
+        #for to cycle through rows
+        for i in range(self.polynomial_degree):
+            
+            #Create an empty row
+            row = []
+            
+            #for to cycle through columns
+            for j in range(self.polynomial_degree):
+                
+                #Make the summation and put them in their respective columns
+                row.append(np.sum(np.power(self.coord_x, (j + i) )))
+            
+            #Adds a row to the summation matrix.
+            self.matrix_summation_x.append(row)
 
-        #For para criar uma matriz linha com os somatorios relacionados
-        # a y.
-        self.matrix_somatorios_x_y = []
-        #For para percorrer as linhas:
-        for e in range(self.grau_polinomio):
-            #Cria uma linha vazia
-            linha_1 = []
-            #Faz os somatorios e os coloca em seus respectivos lugares.
-            linha_1.append(np.sum((self.pontos_y*(np.power(self.pontos_x, e)))))
-            #Adiciona uma linha a matriz de somatorios.
-            self.matrix_somatorios_x_y.append(linha_1)
+        #for to create a line matrix with y-related sums.
+        self.matrix_summation_x_y = []
+        
+        #for to cycle through rows:
+        for e in range(self.polynomial_degree):
+            
+            #Create an empty row
+            row_1 = []
+            
+            #It makes the sums and places them in their respective places.
+            row_1.append(np.sum((self.coord_y*(np.power(self.coord_x, e)))))
+            
+            #Adds a row to the summation matrix.
+            self.matrix_summation_x_y.append(row_1)
 
 
 
         try:
-            #Tenta calcular a matriz inversa dos somatorios de X.
-            self.matrix_inverse_x = np.linalg.inv(self.matrix_somatorios_x)
-            self.matrix_result = self.matrix_inverse_x.dot(self.matrix_somatorios_x_y)
+            
+            #Try to calculate the inverse matrix of the sum of X.
+            self.matrix_inverse_x = np.linalg.inv(self.matrix_summation_x)
+            self.matrix_result = self.matrix_inverse_x.dot(self.matrix_summation_x_y)
 
         except np.linalg.LinAlgError:
-            #Caso não consiga, avisa o usuario.
-            self.matrix_result = np.linalg.solve(self.matrix_somatorios_x, self.matrix_somatorios_x_y)
+            #If not, let the user know.
+            self.matrix_result = np.linalg.solve(self.matrix_summation_x, self.matrix_summation_x_y)
             pass
 
 
-        self.Coeficiente_Determinacao()
-        self.MakeGraph(self.nome_x, self.nome_y, self.titulo)
+        self.Coefficient_Determination()
+        self.MakeGraph(self.name_x, self.name_y, self.title)
 
 
         return self.matrix_result
 
-    def MakeGraph(self, nome_x, nome_y, titulo):
+    def MakeGraph(self, name_x, name_y, title):
         import matplotlib.pyplot as plt
-        #Plotando os pontos.
-        plt.plot(self.pontos_x, self.pontos_y, "o")
+        
+        #Ploting coords.
+        plt.plot(self.coord_x, self.coord_y, "o")
 
-        #Determinando os limites de plot.
-        plt.xlim(self.pontos_x[0]-0.2,self.pontos_x[-1]+0.5)
-        plt.ylim(self.pontos_y[0]-0.2, self.pontos_y[-1]+0.5)
+        #Determining plot boundaries.
+        plt.xlim(self.coord_x[0]-0.2,self.coord_x[-1]+0.5)
+        plt.ylim(self.coord_y[0]-0.2, self.coord_y[-1]+0.5)
 
-        #Nomeando os eixos X e Y.
-        plt.xlabel(nome_x)
-        plt.ylabel(nome_y)
-        soma = ""
+        #naming the X and Y axes
+        plt.xlabel(name_x)
+        plt.ylabel(name_y)
+        sum1 = ""
         sign = ""
-        for i in range(self.grau_polinomio):
+        for i in range(self.polynomial_degree):
             if self.matrix_result[i][0] > 0:
                 sign = " + "
-            soma = soma + (str(" ") + sign + str( round(self.matrix_result[i][0], 5)) + str("*x^") + str(i))
+            sum1 = sum1 + (str(" ") + sign + str( round(self.matrix_result[i][0], 5)) + str("*x^") + str(i))
             sign = ""
 
-        #Dando titulo ao gráfico.
-        plt.title(titulo)
-        #Escrevendo a equação de reta e R²
-        poli = str("f(x) = ") + soma
-        r_quad = str("R²= ") + str(self.r_quad)
-        poli_r_quad = poli + '\n' + r_quad
-        tamanho_vetor = len(self.pontos_x)
-        x = np.linspace(0, tamanho_vetor, (tamanho_vetor*50))
-        plt.plot(x ,self.PolyCoefficients(x), label =  poli_r_quad)
+        #Title the chart.
+        plt.title(title)
+        
+        #Writing the line equation and R²
+        poly = str("f(x) = ") + sum1
+        r_square = str("R²= ") + str(self.r_square)
+        poly_r_square = poly + '\n' + r_square
+        vet_size = len(self.coord_x)
+        x = np.linspace(0, vet_size, (vet_size*50))
+        plt.plot(x ,self.PolyCoefficients(x), label =  poly_r_square)
 
 
-        #Mostrando o grafico no momento da execução
+        #Showing the graph at the time of execution
         plt.legend(loc = 'best', fontsize = '13')
         plt.show()
 
-    def Coeficiente_Determinacao(self):
+    def Coefficient_Determination(self):
 
-        #Calcula a media pontos em Y.
-        self.media_y = ((np.sum(self.pontos_y))/(len(self.pontos_y)))
-        # Calcula a soma do quadrado da diferença entre Y_i e Y_medio
-        self.soma_total = np.sum(np.power((self.pontos_y - self.media_y), 2))
-        #Transforma um vetor em uma matriz 1xN
-        # N = tamanho do vetor
-        self.new_pontos_x = np.reshape(self.pontos_x, (1, len(self.pontos_x)))
-        #Transforma uma matriz Kx1 em uma 1xK.
-        # K = número de linhas da matriz.
+        #Calculates the mean of the ordinate axis.
+        self.average_y = ((np.sum(self.coord_y))/(len(self.coord_y)))
+        
+        #Calculates the sum of the square of the difference between Y_i and Y_average
+        self.sum_total = np.sum(np.power((self.coord_y - self.average_y), 2))
+        
+        #Transform a vector into a 1xN matrix
+        #N = vector size
+        self.new_coord_x = np.reshape(self.coord_x, (1, len(self.coord_x)))
+        
+        #Transforms a Kx1 matrix into a 1xK.
+        # K = number of rows.
         self.new_matrix_result = np.reshape(self.matrix_result,(1, len(self.matrix_result)))
-        #Declara o uma lista para armazenar f_i.
-        self.modelo_previsto = []
-        somatorio = 0
-        #For para controlar o indice de x_i e o tamanho de modelo_previsto
+        
+        #Declares a list to store f_i.
+        self.predicted_model = []
+        summ = 0
+       
+        #for to control the x_i index and size of predicted_model
+        for i in range(len(self.new_coord_x[0])):
+            
+            #For to control the degree of the exponent and index of the result matrix.
+            for j in range(self.polynomial_degree):
+                
+                #Calculates the value of f_i.
+                summ = summ + (self.MakeSum(i, j))
 
-        for i in range(len(self.new_pontos_x[0])):
-            #For para controlar o grau do expoente e indice da matriz resultado.
-            for j in range(self.grau_polinomio):
-                #Calcula o valor de f_i.
-                somatorio = somatorio + (self.MakeSum(i, j))
 
 
+            self.predicted_model.append((summ))
+            summ = 0
 
-            self.modelo_previsto.append((somatorio))
-            somatorio = 0
+        #Calculates the sum of squares due to regression.
+        self.sum_regression = np.sum(np.power((self.predicted_model - self.average_y), 2))
 
-        #Calcula a soma dos quadrados devido a regressão.
-        self.soma_regressao = np.sum(np.power((self.modelo_previsto - self.media_y), 2))
-
-        #Calcula o coeficiente de determinação R².
-        self.r_quad = (self.soma_regressao/self.soma_total)
+        #Calculates the coefficient of determination, R².
+        self.r_square = (self.sum_regression/self.sum_total)
 
 
 
     def PolyCoefficients(self, x):
-        #Determina o número de coeficientes existentes.
-
+        #Determines the number of existing coefficients.
         y = 0
-        for i in range(self.grau_polinomio):
+        for i in range(self.polynomial_degree):
             y += self.matrix_result[i][0]*x**i
         return y
 
     def MakeSum(self, i, j):
-        #Multiplica cada posição da matriz linha por cada posição da matriz coluna
-        #elevando a j, valor do indice da matriz
-        return (self.new_matrix_result[0][j]) * (np.power(self.new_pontos_x[0][i], j))
+        
+        #Multiplies each position of the row matrix by each position of the column matrix raising to j, 
+        # the matrix index value
+        return (self.new_matrix_result[0][j]) * (np.power(self.new_coord_x[0][i], j))
